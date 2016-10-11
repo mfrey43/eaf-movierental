@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 
 import ch.fhnw.edu.rental.model.Rental;
@@ -47,6 +48,23 @@ public class UserRepositoryImpl implements UserRepository {
 
 	@Override
 	public User save(User user) {
+		if(user.getId() != null && exists(user.getId())){
+			template.update("UPDATE USERS SET USER_EMAIL=?, USER_FIRSTNAME=?, USER_NAME=? where USER_ID=?",
+					user.getEmail(), user.getFirstName(), user.getLastName(), user.getId()
+			);
+		}else{
+			SimpleJdbcInsert inserter = new SimpleJdbcInsert(template).withTableName("USERS").usingGeneratedKeyColumns("USER_ID");
+
+			Map<String, Object> parameters = new HashMap<>(3);
+			parameters.put("USER_EMAIL", user.getEmail());
+			parameters.put("USER_FIRSTNAME", user.getFirstName());
+			parameters.put("USER_NAME", user.getLastName());
+
+			Number newId = inserter.executeAndReturnKey(parameters);
+			user.setId((Long)newId);
+
+		}
+
 		return user;
 	}
 
@@ -56,6 +74,7 @@ public class UserRepositoryImpl implements UserRepository {
 		for(Rental r : user.getRentals()){
 			rentalRepo.delete(r);
 		}
+		template.update("DELETE FROM USERS WHERE USER_ID=?", user.getId());
 		user.setId(null);
 	}
 
@@ -101,5 +120,4 @@ public class UserRepositoryImpl implements UserRepository {
 
 		return u;
 	}
-
 }

@@ -101,4 +101,28 @@ public class Rental {
 		this.rentalDays = rentalDays;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Rental rental = (Rental) o;
+
+		if (rentalDays != rental.rentalDays) return false;
+		if (id != null && rental.id != null && !id.equals(rental.id)) return false;
+		if (movie != null ? !movie.equals(rental.movie) : rental.movie != null) return false;
+		if (user != null ? !user.equals(rental.user) : rental.user != null) return false;
+		return rentalDate != null ? rentalDate.equals(rental.rentalDate) : rental.rentalDate == null;
+
+	}
+
+	@Override
+	public int hashCode() {
+		int result = id != null ? id.hashCode() : 0;
+		result = 31 * result + (movie != null ? movie.hashCode() : 0);
+		result = 31 * result + (user != null ? user.hashCode() : 0);
+		result = 31 * result + (rentalDate != null ? rentalDate.hashCode() : 0);
+		result = 31 * result + rentalDays;
+		return result;
+	}
 }

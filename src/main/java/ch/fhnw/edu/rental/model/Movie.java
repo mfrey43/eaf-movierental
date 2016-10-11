@@ -61,7 +61,7 @@ public class Movie {
 		Movie movie = (Movie) o;
 
 		if (rented != movie.rented) return false;
-		if (id != null && movie.id != null) return id.equals(movie.id);
+		if (id != null && movie.id != null && !id.equals(movie.id)) return false;
 		if (title != null ? !title.equals(movie.title) : movie.title != null) return false;
 		if (releaseDate != null ? !releaseDate.equals(movie.releaseDate) : movie.releaseDate != null) return false;
 		return priceCategory != null ? priceCategory.equals(movie.priceCategory) : movie.priceCategory == null;

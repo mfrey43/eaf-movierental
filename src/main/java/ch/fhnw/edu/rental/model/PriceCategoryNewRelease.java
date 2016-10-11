@@ -20,6 +20,6 @@ public class PriceCategoryNewRelease extends PriceCategory {
 
 	@Override
 	public String toString() {
-		return "New Release";
+		return "NewRelease";
 	}
 }

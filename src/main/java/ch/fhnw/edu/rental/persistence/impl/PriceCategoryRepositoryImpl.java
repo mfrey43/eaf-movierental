@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 
 import ch.fhnw.edu.rental.model.PriceCategory;
@@ -44,12 +45,29 @@ public class PriceCategoryRepositoryImpl implements PriceCategoryRepository {
 
     @Override
     public PriceCategory save(PriceCategory category) {
+        if(category.getId() != null && exists(category.getId())){
+            template.update("UPDATE PRICECATEGORIES SET PRICECATEGORY_TYPE=? where PRICECATEGORY_ID=?",
+                    category.toString(), category.getId()
+            );
+        }else{
+            SimpleJdbcInsert inserter = new SimpleJdbcInsert(template).withTableName("PRICECATEGORIES").usingGeneratedKeyColumns("PRICECATEGORY_ID");
+
+            Map<String, Object> parameters = new HashMap<>(1);
+            parameters.put("PRICECATEGORY_TYPE", category.toString());
+
+            Number newId = inserter.executeAndReturnKey(parameters);
+            category.setId((Long)newId);
+
+        }
+
         return category;
     }
 
     @Override
     public void delete(PriceCategory priceCategory) {
         if (priceCategory == null) throw new IllegalArgumentException();
+
+        template.update("DELETE FROM PRICECATEGORIES WHERE PRICECATEGORY_ID=?", priceCategory.getId());
         priceCategory.setId(null);
     }
 

@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 
 import ch.fhnw.edu.rental.model.Rental;
@@ -61,12 +62,31 @@ public class RentalRepositoryImpl implements RentalRepository {
 
 	@Override
 	public Rental save(Rental rental) {
+		if(rental.getId() != null && exists(rental.getId())){
+			template.update("UPDATE RENTALS SET RENTAL_RENTALDATE=?, RENTAL_RENTALDAYS=?, USER_ID=?, MOVIE_ID=? where RENTAL_ID=?",
+					rental.getRentalDate(), rental.getRentalDays(), rental.getUser().getId(), rental.getMovie().getId()
+			);
+		}else{
+			SimpleJdbcInsert inserter = new SimpleJdbcInsert(template).withTableName("RENTALS").usingGeneratedKeyColumns("RENTAL_ID");
+
+			Map<String, Object> parameters = new HashMap<>(3);
+			parameters.put("RENTAL_RENTALDATE", rental.getRentalDate());
+			parameters.put("RENTAL_RENTALDAYS", rental.getRentalDays());
+			parameters.put("USER_ID", rental.getUser().getId());
+			parameters.put("MOVIE_ID", rental.getMovie().getId());
+
+			Number newId = inserter.executeAndReturnKey(parameters);
+			rental.setId((Long)newId);
+
+		}
+
 		return rental;
 	}
 
 	@Override
 	public void delete(Rental rental) {
 		if(rental == null) throw new IllegalArgumentException();
+		template.update("DELETE FROM RENTALS WHERE RENTAL_ID=?", rental.getId());
 		rental.setId(null);
 	}
 
