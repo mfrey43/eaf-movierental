@@ -32,6 +32,8 @@ public class RentalRepositoryImpl implements RentalRepository {
 
 	@Autowired
 	private MovieRepository movieRepo;
+
+	private ObjectUnifier<Rental> cache = new ObjectUnifier<>();
 	
 	@Override
 	public Rental findOne(Long id) {
@@ -98,14 +100,18 @@ public class RentalRepositoryImpl implements RentalRepository {
 	}
 
 	private Rental createRental(ResultSet rs) throws SQLException {
-		Rental r = new Rental(
-				userRepo.findOne(rs.getLong("USER_ID")),
-				movieRepo.findOne(rs.getLong("MOVIE_ID")),
-				rs.getInt("RENTAL_RENTALDAYS"),
-				true
-		);
-		r.setId(rs.getLong("RENTAL_ID"));
-		r.setRentalDate(rs.getTimestamp("RENTAL_RENTALDATE"));
+		Long id = rs.getLong("RENTAL_ID");
+		Rental r = cache.getObject(id);
+		if(r == null){
+			r = new Rental();
+			r.setId(id);
+			cache.putObject(id, r);
+			r.setMovie(movieRepo.findOne(rs.getLong("MOVIE_ID")));
+			r.setUser(userRepo.findOne(rs.getLong("USER_ID")));
+			r.setRentalDays(rs.getInt("RENTAL_RENTALDAYS"));
+			r.setRentalDate(rs.getTimestamp("RENTAL_RENTALDATE"));
+		}
+
 		return r;
 	}
 }

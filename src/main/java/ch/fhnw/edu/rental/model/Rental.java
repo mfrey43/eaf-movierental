@@ -12,6 +12,8 @@ public class Rental {
 	private Date rentalDate;
 	private int rentalDays;
 
+	public Rental(){}
+
 	public Rental(User user, Movie movie, int rentalDays){
 		this(user, movie, rentalDays, false);
 	}

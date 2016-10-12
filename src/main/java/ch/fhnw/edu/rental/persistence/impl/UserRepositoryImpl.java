@@ -27,6 +27,8 @@ public class UserRepositoryImpl implements UserRepository {
 	@Autowired
 	private RentalRepository rentalRepo;
 
+	private ObjectUnifier<User> cache = new ObjectUnifier<>();
+
 	@Override
 	public User findOne(Long id) {
 		if(id == null) throw new IllegalArgumentException();
@@ -103,12 +105,18 @@ public class UserRepositoryImpl implements UserRepository {
 	}
 
 	private User createUser(ResultSet rs) throws SQLException{
-		User u = new User(
-				rs.getString("USER_NAME"),
-				rs.getString("USER_FIRSTNAME")
-		);
-		u.setId(rs.getLong("USER_ID"));
-		u.setEmail(rs.getString("USER_EMAIL"));
+		Long id = rs.getLong("USER_ID");
+		User u = cache.getObject(id);
+		if(u == null){
+			u = new User(
+					rs.getString("USER_NAME"),
+					rs.getString("USER_FIRSTNAME")
+			);
+			u.setId(id);
+			u.setEmail(rs.getString("USER_EMAIL"));
+			cache.putObject(id, u);
+			u.setRentals(rentalRepo.findByUser(u));
+		}
 
 		return u;
 	}
