@@ -1,5 +1,7 @@
 package ch.fhnw.edu.rental.persistence.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,22 +27,13 @@ public class PriceCategoryRepositoryImpl implements PriceCategoryRepository {
     @Override
     public PriceCategory findOne(Long id) {
         if (id == null) throw new IllegalArgumentException();
-
-        Map<String, Object> res = template.queryForMap("select * from PRICECATEGORIES where PRICECATEGORY_ID = ?", id);
-        PriceCategory pc = parseCategory((String) res.get("PRICECATEGORY_TYPE"));
-        pc.setId((Long) res.get("PRICECATEGORY_ID"));
-
-        return pc;
+        return template.queryForObject("select * from PRICECATEGORIES where PRICECATEGORY_ID = ?", (rs, row) -> createPriceCategory(rs), id);
     }
 
     @Override
     public List<PriceCategory> findAll() {
         return template.query("select * from PRICECATEGORIES",
-                (rs, row) -> {
-                    PriceCategory pc = parseCategory(rs.getString("PRICECATEGORY_TYPE"));
-                    pc.setId(rs.getLong("PRICECATEGORY_ID"));
-                    return pc;
-                });
+                (rs, row) -> createPriceCategory(rs));
     }
 
     @Override
@@ -88,16 +81,21 @@ public class PriceCategoryRepositoryImpl implements PriceCategoryRepository {
         return template.queryForObject("SELECT COUNT(*) FROM PRICECATEGORIES", Long.class);
     }
 
-    private static PriceCategory parseCategory(String pcType) {
-        switch (pcType) {
+    private PriceCategory createPriceCategory(ResultSet rs) throws SQLException {
+        PriceCategory pc;
+        switch (rs.getString("PRICECATEGORY_TYPE")) {
             case "Children":
-                return new PriceCategoryChildren();
+                pc = new PriceCategoryChildren();
+                break;
             case "NewRelease":
-                return new PriceCategoryNewRelease();
+                pc = new PriceCategoryNewRelease();
+                break;
             case "Regular":
             default:
-                return new PriceCategoryRegular();
+                pc = new PriceCategoryRegular();
+                break;
         }
+        pc.setId(rs.getLong("PRICECATEGORY_ID"));
+        return pc;
     }
-
 }

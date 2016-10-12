@@ -37,17 +37,7 @@ public class RentalRepositoryImpl implements RentalRepository {
 	public Rental findOne(Long id) {
 		if(id == null) throw new IllegalArgumentException();
 
-		Map<String, Object> res = template.queryForMap("select * from RENTALS where RENTAL_ID = ?", id);
-		Rental r = new Rental(
-				userRepo.findOne((Long) res.get("USER_ID")),
-				movieRepo.findOne((Long) res.get("MOVIE_ID")),
-				(Integer) res.get("RENTAL_RENTALDAYS"),
-				true
-		);
-		r.setId((Long)res.get("RENTAL_ID"));
-		r.setRentalDate((Timestamp)res.get("RENTAL_RENTALDATE"));
-
-		return r;
+		return template.queryForObject("select * from RENTALS where RENTAL_ID = ?", (rs, row) -> createRental(rs), id);
 	}
 
 	@Override

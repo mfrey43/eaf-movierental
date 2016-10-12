@@ -32,16 +32,7 @@ public class MovieRepositoryImpl implements MovieRepository {
 
     @Override
     public Movie findOne(Long id) {
-        Map<String, Object> res = template.queryForMap("select * from MOVIES where MOVIE_ID = ?", id);
-        long priceCategory = (long) res.get("PRICECATEGORY_FK");
-        Movie m = new Movie(
-                (String) res.get("MOVIE_TITLE"),
-                (java.sql.Timestamp) res.get("MOVIE_RELEASEDATE"),
-                priceCategoryRepo.findOne(priceCategory)
-        );
-        m.setId((Long) res.get("MOVIE_ID"));
-        m.setRented((Boolean) res.get("MOVIE_RENTED"));
-        return m;
+        return template.queryForObject("select * from MOVIES where MOVIE_ID = ?", (rs, row) -> createMovie(rs), id);
     }
 
     @Override

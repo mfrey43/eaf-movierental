@@ -30,15 +30,7 @@ public class UserRepositoryImpl implements UserRepository {
 	@Override
 	public User findOne(Long id) {
 		if(id == null) throw new IllegalArgumentException();
-		Map<String, Object> res = template.queryForMap("select * from USERS where USER_ID = ?", id);
-		User u = new User(
-				(String) res.get("USER_NAME"),
-				(String) res.get("USER_FIRSTNAME")
-		);
-		u.setId((Long) res.get("USER_ID"));
-		u.setEmail((String) res.get("USER_EMAIL"));
-
-		return u;
+		return template.queryForObject("select * from USERS where USER_ID = ?", (rs, row) -> createUser(rs), id);
 	}
 
 	@Override
